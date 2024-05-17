@@ -1,0 +1,219 @@
+---
+title: "Applied Statistics: Assignment # 01"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question # 01):
+
+### Part a):
+
+The scatter plot is created between index and sales and it can be seen that there is no linear relationship between index and sales. The shape is a bit U type and hence it says that there is no linearity among both variables.
+
+```{r, warning=FALSE, message=FALSE}
+library(dplyr)
+
+data <- read.csv("sales.csv")
+plot(data$Index, data$Sales, 
+     main = "Index vs Sales", 
+     xlab = "Index", ylab = "Sales", 
+     pch = 16, col = "sky blue")
+```
+
+### Part b):
+
+The linear model is fitted to the data and the diagnostic plots are attached below. It can be seen that there is a U shape in the residual vs fitted plot which shows that the model violates the assumption of linearity in this case. The assumption of normality is however met as there are no deviating points from the 45 degree line.
+
+```{r}
+par(mfrow=c(2,2))
+M1 <- lm(Sales ~ Index,
+         data = data)
+plot(M1)
+```
+
+### Part c):
+
+The summary of the order 2 polynomial is attached below. The predictors are all significant. The R square of the model is 95.13% which means that the model is able to explain 95.13% variability. The overall model is statistically significant with p value below alpha = 0.05,
+
+```{r}
+# Fit a quadratic model (order 2)
+M2 <- lm(Sales ~ poly(Index, 2, raw = TRUE), data = data)
+summary(M2)
+```
+
+The summary of the order 3 polynomial is attached below. The predictors are all significant. The R square of the model is 95.13% which means that the model is able to explain 95.13% variability. The overall model is statistically significant with p value below alpha = 0.05. The performance of both models is approximately same when it comes to goodness of fit.
+
+```{r}
+# Fit a cubic model (order 3)
+M3 <- lm(Sales ~ poly(Index, 3, raw = TRUE), data = data)
+summary(M3)
+```
+
+### Part d):
+
+The scatter plot is created with three lines one for each of the model. It can be seen that the red line which corresponds to the M3 model better explains the model and covers most of the point and shape. Hence, the better fitting model is M3.
+
+```{r}
+# Plot the data
+plot(data$Index, data$Sales, xlab = "Index",
+     col = "black", ylab = "Sales", 
+     ain = "Polynomial Regression Models")
+grid()
+
+# Add predicted lines from models M2 and M3
+lines(data$Index, predict(M1), col = "sky blue", lwd = 2, lty = 2)
+lines(data$Index, predict(M2), col = "blue", lwd = 2, lty = 2)  # Quadratic model (M2)
+lines(data$Index, predict(M3), col = "red", lwd = 2, lty = 3)   # Cubic model (M3)
+
+```
+
+### Part e):
+
+The term "Index" is significant (p < 0.001), indicating that the linear relationship between Sales and Index is significant. The quadratic term "poly(Index, 2, raw = TRUE)" is highly significant (p < 0.001), suggesting that the quadratic relationship between Sales and Index significantly improves the model fit compared to the linear model (M1). The cubic term "poly(Index, 3, raw = TRUE)" is also highly significant (p < 0.001), indicating that adding the cubic term significantly enhances the model fit compared to both the linear (M1) and quadratic (M2) models. 
+
+```{r}
+anova(M1)
+anova(M2)
+anova(M3)
+```
+
+### Part f):
+
+It is observed that each successive term (linear, quadratic, and cubic) significantly contributes to improving the model fit, suggesting that the relationship between Sales and Index is best captured by the cubic model (M3) among the three. Similarly, the R square is also high for the M3 model and the plot shows that the M3 model better explains the trend and shape of the data compared to M1 and M2 models.
+
+
+## Question # 02):
+
+### Part a):
+
+A boxplot is created to show the distribution of increase in engagement score by region and is attached below. It can be seen that the median increase in engagement score is higher in Urban region compared to Rural region.
+
+```{r}
+data <- read.csv("campaign.csv")
+
+boxplot(data$Score ~ data$Region, 
+        main = "Score By Region", 
+        xlab = "Region", ylab = "Score", col = "sky blue")
+```
+
+Similarly, the distribution of percentage increase in engagement score is plotted based on type of marketing campaign used and the highest median percentage increase in engagement score is observed for Social Media, followed by Email and Billboards.
+
+```{r}
+boxplot(data$Score ~ data$Type, 
+        main = "Score By Type", 
+        xlab = "Type", ylab = "Score", col = "cyan")
+```
+
+### Part b):
+
+The interaction model in this case is:
+
+Score = B0 + (B1 * Region) + (B2 * Type) + B3 * (Region:Type) + e
+
+- B0 represents the intercept.
+
+- B1 represents the effect of Type (Social Media, Email, Billboard) on Score.
+
+- B2 represents the effect of Region (Urban, Rural) on Score.
+
+- B3  represents the interaction effect between Type and Region on Score.
+
+- e represents the error term.
+
+### Part c):
+
+The null and alternate hypothesis are:
+
+- Null Hypothesis: There is no significant difference in the mean Score across different Types and Regions.
+
+- Alternative hypothesis : There is a significant difference in the mean Score across different Types and Regions.
+
+The p-value for Region is less than 0.05, indicating that there is a significant effect of Region on the percentage increase in engagement Score. Similarly, the p-value for Type is also much less than 0.05, indicating that there is a significant effect of Type on the percentage increase in engagement Score. Finally, the interaction term (Region:Type) has a p-value greater than 0.05, indicating that there is no significant interaction effect between Type and Region on the percentage increase in engagement Score. In other words, the impact of Type on Score is not significantly different across different Regions.
+
+
+```{r}
+model <- lm(Score ~ Region + Type + Region * Type,
+            data = data)
+# ANOVA for interaction model
+anova(model)
+```
+
+The assumptions of the model are validated using the diagnostic plots attached below and it can be seen that the assumption of linearity, normality are met and there are no issues of heteroskedasticity.
+
+```{r}
+par(mfrow=c(2,2))
+plot(model)
+```
+
+### Part d):
+
+For main effect of type of campaigns used, the null and alternate hypothesis are attached below:
+
+- Null Hypothesis: There is no significant difference in the mean Score across different Types of campaigns used.
+
+- Alternate Hypothesis: There is a significant difference in the mean Score across different Types of campaigns used.
+
+The p-value for Type is less than 0.05, indicating that there is a significant effect of Type of campaigns used on the percentage increase in engagement Score.
+
+```{r}
+# ANOVA for Type
+type_model <- lm(Score ~ Type, data = data)
+anova(type_model)
+```
+
+The assumptions of the model are validated using the diagnostic plots attached below and it can be seen that the assumption of linearity, normality are met and there are no issues of heteroskedasticity.
+
+```{r}
+par(mfrow=c(2,2))
+plot(type_model)
+```
+
+
+For main effect of region, the null and alternate hypothesis are attached below:
+
+- Null Hypothesis: There is no significant difference in the mean Score across different regions.
+
+- Alternate Hypothesis: There is a significant difference in the mean Score across different regions.
+
+The p-value for Region is less than 0.05, indicating that there is a significant effect of Region on the percentage increase in engagement Score.
+
+```{r}
+# ANOVA for Region
+region_model <- lm(Score ~ Region, data = data)
+anova(region_model)
+```
+
+The assumptions of the model are validated using the diagnostic plots attached below and it can be seen that the assumption of linearity is met but the assumption of normality is violated as deviation of points is observed and there are no issues of heteroskedasticity.
+
+```{r}
+par(mfrow=c(2,2))
+plot(region_model)
+```
+
+### Part e):
+
+The design balance is checked and it is pretty balanced and hence we can move forward to performing pair wise comparison.
+
+```{r}
+table(data$Region, data$Type)
+```
+
+The mean percentage increase in engagement Score for Email campaigns is significantly different from Billboard campaigns, with Email campaigns having a higher mean Score by approximately 3.97%. The mean percentage increase in engagement Score for Social Media campaigns is significantly different from Billboard campaigns, with Social Media campaigns having a higher mean Score by approximately 12.33%. Finally, the mean percentage increase in engagement Score for Social Media campaigns is significantly different from Email campaigns, with Social Media campaigns having a higher mean Score by approximately 8.36%.
+
+  The mean percentage increase in engagement Score for Urban regions is significantly different from Rural regions, with Urban regions having a higher mean Score by approximately 4.66%. This suggests that marketing campaigns deployed in Urban regions tend to have a higher impact on customer engagement scores compared to those deployed in Rural regions.
+
+```{r}
+# TukeyHSD for Type
+tukey_type <- TukeyHSD(aov(Score ~ Type, data = data))
+(tukey_type)
+
+# TukeyHSD for Region
+tukey_region <- TukeyHSD(aov(Score ~ Region, data = data))
+(tukey_region)
+```
+
+
+
